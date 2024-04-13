@@ -34,27 +34,27 @@ const handleRefreshToken = async (req, res) => {
         }).exec();
 
         hackedUser.refreshToken = [];
-        // return res.status(403).json({
-        //   message: `Attempted refresh token reuse by Invalid User!!`,
-        // });
-
-        const roles = Object.values(hackedUser.roles);
-        const newAccessToken = jwt.sign(
-          {
-            UserInfo: {
-              _id: hackedUser._id,
-              roles: roles,
-            },
-          },
-          process.env.ACCESS_TOKEN,
-          { expiresIn: "45m" }
-        );
-
-        // Send the new access token in the response
-        res.json({
-          accessToken: newAccessToken,
-          message: ` Account was refreshed , Please Log Out if action was not perfromed by You`,
+        return res.status(403).json({
+          message: `Attempted refresh token reuse!!`,
         });
+
+        // const roles = Object.values(hackedUser.roles);
+        // const newAccessToken = jwt.sign(
+        //   {
+        //     UserInfo: {
+        //       _id: hackedUser._id,
+        //       roles: roles,
+        //     },
+        //   },
+        //   process.env.ACCESS_TOKEN,
+        //   { expiresIn: "20s" }
+        // );
+
+        // // Send the new access token in the response
+        // res.json({
+        //   accessToken: newAccessToken,
+        //   message: ` Account was refreshed , Please Log Out if action was not perfromed by You`,
+        // });
       }
     );
   }
@@ -99,7 +99,7 @@ const handleRefreshToken = async (req, res) => {
             roles: roles,
           },
           process.env.REFRESH_TOKEN,
-          { expiresIn: "1h" }
+          { expiresIn: "1d" }
         );
         // Saving refreshToken with current user
         foundUser.refreshToken = [...newRefreshTokenArray, newRefreshToken];

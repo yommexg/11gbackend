@@ -34,7 +34,7 @@ const handleLogout = async (req, res) => {
     secure: true,
   });
   res.status(200).json({
-    message: `Thank You ${foundUser.username}, Your Account is logged out on this device`,
+    message: `Thank You ${foundUser.username}, Your Account is Logged Out`,
     warning: "Delete Access Token from Client",
   });
 };

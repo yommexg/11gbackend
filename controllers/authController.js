@@ -34,7 +34,7 @@ const handleLogin = async (req, res) => {
         roles: roles,
       },
       process.env.REFRESH_TOKEN,
-      { expiresIn: "1h" }
+      { expiresIn: "1d" }
     );
     // changed to learn keyword
     let newRefreshTokenArray = !cookies?.jwt

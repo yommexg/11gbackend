@@ -43,6 +43,7 @@ const getUser = async (req, res) => {
     address: user.address,
     avatar: user.avatar,
     status: user.status,
+    username: user.username,
   });
 };
 
