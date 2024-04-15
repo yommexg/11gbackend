@@ -121,7 +121,7 @@ const handleResetPassword = async (req, res) => {
     return res.status(401).json({ message: "Please Register your Account!!" });
   }
   if (foundUser && foundUser?.otp.code !== process.env.FORGOT_SUCCESS) {
-    return res.status(401).json({ message: "Not Allowed, Please try Again" });
+    return res.status(401).json({ message: "Not Allowed, Please Retry OTP" });
   }
 
   if (
@@ -154,9 +154,9 @@ const handleResetPassword = async (req, res) => {
         "Your password reset was successful, Please contact Us if you did not perform the action",
         "#1E90FF"
       );
-      res
-        .status(201)
-        .json({ success: `${foundUser.username} Password was Changed` });
+      res.status(201).json({
+        success: `${foundUser.username}, Your Password has been successfully Changed`,
+      });
     } catch (error) {
       res.status(500).json({ error: `An error occurred: ${error}` });
     }

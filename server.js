@@ -27,7 +27,7 @@ connectDB();
 
 deleteUnregisteredUsers();
 
-cron.schedule("0 0 * * 0", deleteUnregisteredUsers);
+cron.schedule("0 0 * * *", deleteUnregisteredUsers);
 
 // setInterval(deleteInactiveUsers, 60 * 1000);
 
@@ -55,7 +55,7 @@ app.use(
     secret: process.env.SESSION_KEY,
     resave: true,
     saveUninitialized: true,
-    cookie: { secure: false },
+    cookie: { secure: process.env.NODE_ENV === "production" },
   })
 );
 

@@ -10,7 +10,7 @@ const handleLogout = async (req, res) => {
   // is refershToken in db?
   const foundUser = await User.findOne({ refreshToken }).exec();
   if (!foundUser) {
-    res.clearCookie("jwt", { httpOnly: true, sameSite: "None", secure: true });
+    res.clearCookie("jwt", { httpOnly: true, SameSite: "None", secure: true });
     return res.status(404).json({
       message: `User Not Found`,
     });
@@ -30,8 +30,8 @@ const handleLogout = async (req, res) => {
   );
   res.clearCookie("jwt", {
     httpOnly: true,
-    sameSite: "None",
     secure: true,
+    SameSite: "None",
   });
   res.status(200).json({
     message: `Thank You ${foundUser.username}, Your Account is Logged Out`,

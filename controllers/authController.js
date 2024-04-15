@@ -12,9 +12,18 @@ const handleLogin = async (req, res) => {
       .json({ message: "Email and password are required." });
 
   const foundUser = await User.findOne({ email }).exec();
-  if (!foundUser) return res.sendStatus(401); //Unauthorized
-  // evaluate password
+
+  if (!foundUser)
+    return res
+      .status(400)
+      .json({
+        message: "Email does not Exist, Please Register Email to Login",
+      });
+
   const match = await bcrypt.compare(pwd, foundUser.password);
+
+  if (!match) return res.status(401).json({ message: "WRong Password" });
+
   if (match) {
     const roles = Object.values(foundUser.roles).filter(Boolean);
     // create JWTs
