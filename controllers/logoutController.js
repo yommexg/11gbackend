@@ -1,7 +1,7 @@
 const User = require("../model/User");
 
 const handleLogout = async (req, res) => {
-  const refreshToken = req.cookies?.jwt;
+  const refreshToken = req.cookies.jwt;
   if (!refreshToken)
     return res.status(404).json({
       message: `No Cookie Availiable`,
@@ -31,7 +31,7 @@ const handleLogout = async (req, res) => {
   res.clearCookie("jwt", {
     httpOnly: true,
     secure: true,
-    SameSite: "None",
+    sameSite: "None",
   });
   res.status(200).json({
     message: `Thank You ${foundUser.username}, Your Account is Logged Out`,

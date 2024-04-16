@@ -14,15 +14,13 @@ const handleLogin = async (req, res) => {
   const foundUser = await User.findOne({ email }).exec();
 
   if (!foundUser)
-    return res
-      .status(400)
-      .json({
-        message: "Email does not Exist, Please Register Email to Login",
-      });
+    return res.status(400).json({
+      message: "Email does not Exist, Please Register Email to Login",
+    });
 
   const match = await bcrypt.compare(pwd, foundUser.password);
 
-  if (!match) return res.status(401).json({ message: "WRong Password" });
+  if (!match) return res.status(401).json({ message: "Wrong Password" });
 
   if (match) {
     const roles = Object.values(foundUser.roles).filter(Boolean);
@@ -61,6 +59,8 @@ const handleLogin = async (req, res) => {
       const refreshToken = cookies.jwt;
       const foundToken = await User.findOne({ refreshToken }).exec();
 
+      console.log(refreshToken);
+
       // Detected refresh token reuse
       if (!foundToken) {
         console.log("attempted to reuse refresh token at Login!!");
@@ -71,7 +71,7 @@ const handleLogin = async (req, res) => {
       await res.clearCookie("jwt", {
         httpOnly: true,
         secure: true,
-        SameSite: "None",
+        sameSite: "None",
       });
     }
 
@@ -86,7 +86,7 @@ const handleLogin = async (req, res) => {
     res.cookie("jwt", newRefreshToken, {
       httpOnly: true,
       secure: true,
-      SameSite: "None",
+      sameSite: "None",
       maxAge: 24 * 60 * 60 * 1000,
     });
 

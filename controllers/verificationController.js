@@ -1,6 +1,12 @@
-const User = require("../model/User");
 const otpGenerator = require("otp-generator");
-const { sendOTP, sendMessage } = require("../sendEmail");
+const redis = require("redis");
+
+const User = require("../model/User");
+const { sendMessage } = require("../sendEmail");
+
+const redisHost = process.env.REDIS_HOST;
+const redisPort = process.env.REDIS_PORT;
+const redisPassword = process.env.REDIS_PASSWORD;
 
 const handleNewUserVerification = async (req, res) => {
   const { email } = req.body;
@@ -28,13 +34,38 @@ const handleNewUserVerification = async (req, res) => {
       specialChars: false,
     });
 
-    req.session.otp = otp;
-    req.session.otpExpiry = new Date(Date.now() + 5 * 60000);
+    // req.session.otp = otp;
+    // req.session.otpExpiry = new Date(Date.now() + 5 * 60000)
+
+    const client = redis.createClient({
+      password: redisPassword,
+      socket: {
+        host: redisHost,
+        port: redisPort,
+      },
+    });
+
+    await client.connect();
+
+    const sessionId = Math.random().toString(36).substring(2, 15);
+
+    res.cookie("sessionId", sessionId, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "None",
+    });
+
+    const sessionData = {
+      otp,
+      otpExpiry: new Date(Date.now() + 5 * 60000).toISOString(),
+    };
+
+    await client.set(sessionId, JSON.stringify(sessionData), "EX", 5 * 60);
 
     const succMessage =
       "Please note that your OTP code is valid for 5 minutes. Ensure to use it within this time frame.";
 
-    await sendMessage(
+    sendMessage(
       req.body?.email,
       "Register for 11GAutos",
       `${otp} ${succMessage}`,
@@ -45,6 +76,8 @@ const handleNewUserVerification = async (req, res) => {
       success: `OTP Sent Successfully to ${req.body?.email}`,
       message: succMessage,
     });
+
+    await client.quit();
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -57,15 +90,36 @@ const handleOTPRequest = async (req, res) => {
 
   if (!OTP) return res.status(400).json({ message: "OTP Required" });
 
+  const sessionId = req.cookies.sessionId;
+
+  if (!sessionId) {
+    return res.status(400).json({ message: "Missing session ID" });
+  }
+
   const foundUser = await User.findOne({
     email,
   }).exec();
 
   try {
-    if (
-      OTP !== req.session.otp ||
-      new Date(req.session.otpExpiry) < new Date()
-    ) {
+    const client = redis.createClient({
+      password: redisPassword,
+      socket: {
+        host: redisHost,
+        port: redisPort,
+      },
+    });
+
+    await client.connect();
+
+    const sessionData = await client.get(sessionId);
+
+    if (!sessionData) {
+      return res.status(400).json({ message: "Invalid session ID" });
+    }
+
+    const parsedData = JSON.parse(sessionData);
+
+    if (OTP !== parsedData.otp || new Date(parsedData.otpExpiry) < new Date()) {
       return res.status(400).json({ message: "Invalid or expired OTP" });
     }
 
@@ -77,8 +131,12 @@ const handleOTPRequest = async (req, res) => {
       });
     }
 
-    req.session.otp = "";
-    req.session.otpExpiry = "";
+    // req.session.otp = "";
+    // req.session.otpExpiry = "";
+
+    await client.del(sessionId);
+
+    await client.quit();
 
     await res
       .status(201)
