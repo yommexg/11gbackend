@@ -61,6 +61,8 @@ const handleUsedCar = async (req, res) => {
     quantity,
     carLocation,
     plateNumber,
+    gearType,
+    energyType,
   } = req.body;
 
   const { userId } = req?.params;
@@ -80,7 +82,9 @@ const handleUsedCar = async (req, res) => {
     !engineNumber ||
     !carColor ||
     !carLocation ||
-    !plateNumber
+    !plateNumber ||
+    !gearType ||
+    !energyType
   ) {
     return res.status(400).json({ message: "Incomplete Used Car Details" });
   }
@@ -121,6 +125,8 @@ const handleUsedCar = async (req, res) => {
         carImage: usedCarImages,
         carLocation,
         plateNumber,
+        gearType,
+        energyType,
         user: userId,
       });
 

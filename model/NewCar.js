@@ -17,6 +17,21 @@ const newCarSchema = new Schema({
     required: true,
   },
 
+  gearType: {
+    type: String,
+    required: true,
+  },
+
+  energyType: {
+    type: String,
+    required: true,
+  },
+
+  gearType: {
+    type: String,
+    required: true,
+  },
+
   price: {
     type: Number,
     required: true,

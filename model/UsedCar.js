@@ -72,6 +72,16 @@ const usedCarSchema = new Schema({
     required: true,
   },
 
+  gearType: {
+    type: String,
+    required: true,
+  },
+
+  energyType: {
+    type: String,
+    required: true,
+  },
+
   carImage: [
     {
       type: String,
