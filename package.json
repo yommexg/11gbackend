@@ -10,6 +10,7 @@
   "author": "Yommex",
   "license": "ISC",
   "dependencies": {
+    "@aws-sdk/s3-request-presigner": "^3.554.0",
     "aws-sdk": "^2.1587.0",
     "axios": "^1.4.0",
     "bcrypt": "^5.1.0",

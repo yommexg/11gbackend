@@ -8,7 +8,7 @@ const getAllUsers = async (req, res) => {
   try {
     const users = await User.find();
     if (!users || users.length === 0) {
-      return res.status(204).json({ message: "No users found" });
+      return res.status(204).json({ message: "No User found" });
     }
 
     const userDetails = users.map((user) => ({
@@ -17,6 +17,7 @@ const getAllUsers = async (req, res) => {
       address: user.address,
       avatar: user.avatar,
       status: user.status,
+      username: user.username,
     }));
 
     res.json(userDetails);
@@ -36,7 +37,7 @@ const getUser = async (req, res) => {
   if (!userId) return res.status(400).json({ message: "User ID required" });
   const user = await User.findOne({ _id: userId }).exec();
 
-  if (!user) return res.status(404).json({ message: "User Not Availiable" });
+  if (!user) return res.status(404).json({ message: "User Not Found" });
   res.json({
     email: user.email,
     phoneNumber: user.phoneNumber,
@@ -58,7 +59,7 @@ const updateUser = async (req, res) => {
     const foundUser = await User.findOne({ _id: userId }).exec();
 
     if (!foundUser) {
-      return res.status(404).json({ message: `User ID ${id} not found` });
+      return res.status(404).json({ message: `User Not Found` });
     }
 
     if (user) {
@@ -115,12 +116,12 @@ const uploadAvatar = async (req, res) => {
   const foundUser = await User.findOne({ _id: userId }).exec();
 
   if (!foundUser) {
-    return res.status(404).json({ message: `User ID ${userId} not found` });
+    return res.status(404).json({ message: `User Not found` });
   } else {
     try {
       const response = await uploadAvatarS3(file, foundUser?.username);
 
-      foundUser.avatar = response?.Location;
+      foundUser.avatar = response;
 
       await foundUser.save();
 

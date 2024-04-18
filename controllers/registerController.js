@@ -1,5 +1,8 @@
-const User = require("../model/User");
 const bcrypt = require("bcrypt");
+
+const User = require("../model/User");
+const NewCar = require("../model/NewCar");
+
 const { sendMessage } = require("../sendEmail");
 
 const handleNewUser = async (req, res) => {

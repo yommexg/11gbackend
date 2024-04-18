@@ -66,18 +66,24 @@ app.use("/verify-email", require("./routes/verification"));
 app.use("/refresh", require("./routes/refresh"));
 app.use("/logout", require("./routes/logout"));
 app.use("/forget-password", require("./routes/forgotPassword"));
-// app.use("/getBrands", require("./routes/getBrands"));
+
+app.use("/new-cars", require("./routes/newCars"));
+app.use("/used-cars", require("./routes/usedCars"));
+app.use("/car-ass", require("./routes/carAss"));
 // app.use("/payment", require("./routes/payment"));
 
 app.use(verifyJWT);
 app.use("/users", require("./routes/api/admin/getAllUsers"));
+app.use("/new-car", require("./routes/api/admin/newCar"));
+app.use("/used-car", require("./routes/api/admin/usedCar"));
+app.use("/car-ass", require("./routes/api/admin/carAss"));
+app.use("/complete-user-deletion", require("./routes/api/admin/deleteUser"));
 app.use("/update-user-status", require("./routes/api/admin/updateStatus"));
+
 app.use("/user", require("./routes/api/users/user"));
+app.use("/used-car", require("./routes/api/users/usedCar"));
 app.use("/upload-avatar", require("./routes/api/users/uploadAvatar"));
 app.use("/delete-user", require("./routes/api/users/deleteUser"));
-app.use("/complete-user-deletion", require("./routes/api/admin/deleteUser"));
-
-app.use("/brands", require("./routes/api/brands"));
 
 // Multer middleware
 app.use((error, req, res, next) => {

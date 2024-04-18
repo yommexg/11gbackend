@@ -34,9 +34,6 @@ const handleNewUserVerification = async (req, res) => {
       specialChars: false,
     });
 
-    // req.session.otp = otp;
-    // req.session.otpExpiry = new Date(Date.now() + 5 * 60000)
-
     const client = redis.createClient({
       password: redisPassword,
       socket: {
@@ -130,9 +127,6 @@ const handleOTPRequest = async (req, res) => {
         email,
       });
     }
-
-    // req.session.otp = "";
-    // req.session.otpExpiry = "";
 
     await client.del(sessionId);
 
