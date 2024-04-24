@@ -27,11 +27,6 @@ const newCarSchema = new Schema({
     required: true,
   },
 
-  gearType: {
-    type: String,
-    required: true,
-  },
-
   price: {
     type: Number,
     required: true,
@@ -75,6 +70,11 @@ const newCarSchema = new Schema({
       required: true,
     },
   ],
+
+  status: {
+    type: Number,
+    default: 0,
+  },
 
   createdAt: { type: Date, default: Date.now },
 });

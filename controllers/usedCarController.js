@@ -271,7 +271,7 @@ const handleDeclineUsedCar = async (req, res) => {
 
   if (foundAdmin && foundUsedCar.status === 0) {
     try {
-      foundUsedCar.status = -1;
+      foundUsedCar.status = -2;
 
       await foundUsedCar.save();
 

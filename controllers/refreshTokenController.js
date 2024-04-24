@@ -28,33 +28,33 @@ const handleRefreshToken = async (req, res) => {
           return res.status(403).json({
             message: `Error Occured, ${err}`,
           });
-        console.log("attempted refresh token reuse!");
+        // console.log("attempted refresh token reuse!");
         const hackedUser = await User.findOne({
           _id: decoded._id,
         }).exec();
 
-        hackedUser.refreshToken = [];
-        return res.status(403).json({
-          message: `Attempted refresh token reuse!!`,
-        });
-
-        // const roles = Object.values(hackedUser.roles);
-        // const newAccessToken = jwt.sign(
-        //   {
-        //     UserInfo: {
-        //       _id: hackedUser._id,
-        //       roles: roles,
-        //     },
-        //   },
-        //   process.env.ACCESS_TOKEN,
-        //   { expiresIn: "20s" }
-        // );
-
-        // // Send the new access token in the response
-        // res.json({
-        //   accessToken: newAccessToken,
-        //   message: ` Account was refreshed , Please Log Out if action was not perfromed by You`,
+        // hackedUser.refreshToken = [];
+        // return res.status(403).json({
+        //   message: `Attempted refresh token reuse!!`,
         // });
+
+        const roles = Object.values(hackedUser.roles);
+        const newAccessToken = jwt.sign(
+          {
+            UserInfo: {
+              _id: hackedUser._id,
+              roles: roles,
+            },
+          },
+          process.env.ACCESS_TOKEN,
+          { expiresIn: "45m" }
+        );
+
+        // Send the new access token in the response
+        res.json({
+          accessToken: newAccessToken,
+          message: ` Account was refreshed , Please Log Out if action was not perfromed by You`,
+        });
       }
     );
   }
@@ -86,7 +86,7 @@ const handleRefreshToken = async (req, res) => {
             },
           },
           process.env.ACCESS_TOKEN,
-          { expiresIn: "20m" }
+          { expiresIn: "45m" }
         );
         // const newRefreshToken = jwt.sign(
         //   { username: foundUser.username, email: foundUser.email },

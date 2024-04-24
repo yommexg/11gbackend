@@ -20,6 +20,25 @@ const getAllNewCars = async (req, res) => {
   }
 };
 
+const getNewCar = async (req, res) => {
+  const { newCarId } = req.params;
+
+  if (!newCarId || !mongoose.Types.ObjectId.isValid(newCarId)) {
+    return res.status(400).json({ message: "Valid New Car ID required" });
+  }
+
+  try {
+    const newCar = await NewCar.findOne({ _id: newCarId }).exec();
+
+    if (!newCar) return res.status(404).json({ message: "New Car Not Found" });
+
+    res.json(newCar);
+  } catch (error) {
+    console.error("Error fetching New Car:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
 const handleNewCar = async (req, res) => {
   const {
     carName,
@@ -58,7 +77,7 @@ const handleNewCar = async (req, res) => {
     return res.status(400).json({ message: "Incomplete Car Details" });
   }
 
-  if (!files) {
+  if (!files || files?.length === 0) {
     return res.status(400).json({ message: "Image is required" });
   }
   const foundUser = await User.findOne({
@@ -109,6 +128,116 @@ const handleNewCar = async (req, res) => {
       res.status(201).json({
         success: message,
       });
+    } catch (err) {
+      res.status(500).json({ message: err.message });
+    }
+  }
+};
+
+const handleChangeNewCarStatus = async (req, res) => {
+  const { userId, carId } = req?.params;
+  const { carStatus } = req?.body;
+
+  if (!userId || !mongoose.Types.ObjectId.isValid(userId)) {
+    return res.status(400).json({ message: "Valid User ID required" });
+  }
+
+  if (!carId || !mongoose.Types.ObjectId.isValid(carId)) {
+    return res.status(400).json({ message: "Valid Car ID required" });
+  }
+
+  if (carStatus === undefined || carStatus === null) {
+    return res.status(400).json({ message: "Car Status is required" });
+  }
+
+  const foundUser = await User.findOne({
+    _id: userId,
+  }).exec();
+
+  const foundNewCar = await NewCar.findOne({
+    _id: carId,
+  }).exec();
+
+  const admin = await User.find({
+    "roles.Admin": { $exists: true, $ne: null },
+  }).exec();
+
+  if (!foundUser) {
+    return res.status(401).json({ message: "Access Denied" });
+  }
+
+  if (!foundNewCar) {
+    return res.status(401).json({ message: "Car Not Availiable" });
+  }
+
+  if (foundUser) {
+    try {
+      if (carStatus === 0) {
+        foundNewCar.status = 0;
+
+        await foundNewCar.save();
+
+        const message = "Car Status Changed to Pending";
+
+        if (admin.length > 0) {
+          for (const adminUser of admin) {
+            await sendMessage(
+              adminUser.email,
+              `${message}`,
+              `A ${foundNewCar?.carColor} Color ${foundNewCar?.carName} of Brand ${foundNewCar?.carBrand} status has been changed to Pending by${foundUser?.username}`,
+              "yellow"
+            );
+          }
+        }
+
+        res.status(200).json({
+          success: message,
+        });
+      }
+      if (carStatus === 1) {
+        foundNewCar.status = 1;
+
+        await foundNewCar.save();
+
+        const message = "Car Status Changed to Availiable";
+
+        if (admin.length > 0) {
+          for (const adminUser of admin) {
+            await sendMessage(
+              adminUser.email,
+              `${message}`,
+              `A ${foundNewCar?.carColor} Color ${foundNewCar?.carName} of Brand ${foundNewCar?.carBrand} status has been changed to Availiable by ${foundUser?.username}`,
+              "green"
+            );
+          }
+        }
+
+        res.status(200).json({
+          success: message,
+        });
+      }
+      if (carStatus === -1) {
+        foundNewCar.status = -1;
+
+        await foundNewCar.save();
+
+        const message = "Car Status Changed to Sold Out";
+
+        if (admin.length > 0) {
+          for (const adminUser of admin) {
+            await sendMessage(
+              adminUser.email,
+              `${message}`,
+              `A ${foundNewCar?.carColor} Color ${foundNewCar?.carName} of Brand ${foundNewCar?.carBrand} status has been changed to Sold Out by ${foundUser?.username}`,
+              "red"
+            );
+          }
+        }
+
+        res.status(200).json({
+          success: message,
+        });
+      }
     } catch (err) {
       res.status(500).json({ message: err.message });
     }
@@ -174,4 +303,10 @@ const handleDeleteNewCar = async (req, res) => {
   }
 };
 
-module.exports = { handleNewCar, handleDeleteNewCar, getAllNewCars };
+module.exports = {
+  handleNewCar,
+  handleDeleteNewCar,
+  getAllNewCars,
+  getNewCar,
+  handleChangeNewCarStatus,
+};

@@ -32,6 +32,12 @@ router.post(
   newCarController.handleNewCar
 );
 
+router.patch(
+  "/:userId/change-status/:carId",
+  verifyRoles(ROLES_LIST.Admin),
+  newCarController.handleChangeNewCarStatus
+);
+
 router.delete(
   "/:userId/delete/:carId",
   verifyRoles(ROLES_LIST.Admin),
