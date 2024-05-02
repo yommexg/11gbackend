@@ -26,9 +26,9 @@ const upload = multer({
 });
 
 router.post(
-  "/:userId/sell-car",
+  "/:userId/create-used-car",
   verifyRoles(ROLES_LIST.User),
-  upload.array("Used Car"),
+  upload.array("Used-Car"),
   usedCarController.handleUsedCar
 );
 

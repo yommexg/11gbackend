@@ -29,7 +29,32 @@ const getAllUsedCars = async (req, res) => {
     }
     res.json(cars);
   } catch (error) {
-    console.error("Error fetching New Cars:", error);
+    console.error("Error fetching Used Cars:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+const getUsedCar = async (req, res) => {
+  const { usedCarId } = req.params;
+
+  if (!usedCarId || !mongoose.Types.ObjectId.isValid(usedCarId)) {
+    return res.status(400).json({ message: "Valid Used Car ID required" });
+  }
+
+  try {
+    const usedCar = await UsedCar.findOne({ _id: usedCarId })
+      .populate({
+        path: "user",
+        select: "email  phoneNumber username",
+      })
+      .exec();
+
+    if (!usedCar)
+      return res.status(404).json({ message: "Used Car Not Found" });
+
+    res.json(usedCar);
+  } catch (error) {
+    console.error("Error fetching Used Car:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 };
@@ -42,7 +67,7 @@ const getAllApprovedUsedCars = async (req, res) => {
     }
     res.json(cars);
   } catch (error) {
-    console.error("Error fetching New Cars:", error);
+    console.error("Error fetching Used Cars:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 };
@@ -89,7 +114,7 @@ const handleUsedCar = async (req, res) => {
     return res.status(400).json({ message: "Incomplete Used Car Details" });
   }
 
-  if (!files) {
+  if (!files || files?.length === 0) {
     return res.status(400).json({ message: "Car Image(s) is/are required" });
   }
   const foundUser = await User.findOne({
@@ -159,77 +184,10 @@ const handleUsedCar = async (req, res) => {
   }
 };
 
-const handleApproveUsedCar = async (req, res) => {
+const handleChangeUsedCarStatus = async (req, res) => {
   const { userId, carId } = req?.params;
-  if (!userId || !mongoose.Types.ObjectId.isValid(userId)) {
-    return res.status(400).json({ message: "Valid User ID required" });
-  }
+  const { carStatus } = req?.body;
 
-  if (!carId || !mongoose.Types.ObjectId.isValid(carId)) {
-    return res.status(400).json({ message: "Valid Car ID required" });
-  }
-
-  const foundAdmin = await User.findOne({
-    _id: userId,
-  }).exec();
-
-  const foundUsedCar = await UsedCar.findOne({
-    _id: carId,
-  }).exec();
-
-  const foundUser = await User.findOne({
-    _id: foundUsedCar.user,
-  });
-
-  const admin = await User.find({
-    "roles.Admin": { $exists: true, $ne: null },
-  }).exec();
-
-  if (!foundAdmin) {
-    return res.status(401).json({ message: "Access Denied / Unauthorized" });
-  }
-
-  if (!foundUsedCar || foundUsedCar.status !== 0) {
-    return res.status(401).json({ message: "Car Not Availiable" });
-  }
-
-  if (foundAdmin && foundUsedCar.status === 0) {
-    try {
-      foundUsedCar.status = 1;
-
-      await foundUsedCar.save();
-
-      const message = `Car Approved Successfully For Sale`;
-
-      if (admin.length > 0) {
-        for (const adminUser of admin) {
-          await sendMessage(
-            adminUser.email,
-            `${message}`,
-            `A ${foundUsedCar?.carColor} Color ${foundUsedCar?.carName} of Brand ${foundUsedCar?.carBrand} has been made availiable for sale by admin ${foundUser?.username}`,
-            "green"
-          );
-        }
-
-        await sendMessage(
-          foundUser?.email,
-          `${message}`,
-          `Your request for selling of ${foundUsedCar?.carColor} Color ${foundUsedCar?.carName} of Brand ${foundUsedCar?.carBrand} has been Approved`,
-          "green"
-        );
-      }
-
-      res.status(200).json({
-        success: message,
-      });
-    } catch (err) {
-      res.status(500).json({ message: err.message });
-    }
-  }
-};
-
-const handleDeclineUsedCar = async (req, res) => {
-  const { userId, carId } = req?.params;
   const { reason } = req?.body;
 
   if (!userId || !mongoose.Types.ObjectId.isValid(userId)) {
@@ -240,66 +198,150 @@ const handleDeclineUsedCar = async (req, res) => {
     return res.status(400).json({ message: "Valid Car ID required" });
   }
 
-  if (!reason) {
-    return res.status(400).json({ message: "Reason for Decline Required" });
+  if (carStatus === undefined || carStatus === null) {
+    return res.status(400).json({ message: "Car Status is required" });
   }
 
-  const foundAdmin = await User.findOne({
+  const foundUser = await User.findOne({
     _id: userId,
-    "roles.Admin": { $exists: true, $ne: null },
   }).exec();
 
   const foundUsedCar = await UsedCar.findOne({
     _id: carId,
   }).exec();
 
-  const foundUser = await User.findOne({
-    _id: foundUsedCar.user,
-  });
-
   const admin = await User.find({
     "roles.Admin": { $exists: true, $ne: null },
   }).exec();
 
-  if (!foundAdmin) {
-    return res.status(401).json({ message: "Access Denied / Unauthorized" });
+  if (!foundUser) {
+    return res.status(401).json({ message: "Access Denied" });
   }
 
-  if (!foundUsedCar || foundUsedCar.status !== 0) {
+  if (!foundUsedCar) {
     return res.status(401).json({ message: "Car Not Availiable" });
   }
 
-  if (foundAdmin && foundUsedCar.status === 0) {
+  if (foundUser) {
     try {
-      foundUsedCar.status = -2;
+      if (carStatus === 0) {
+        foundUsedCar.status = 0;
 
-      await foundUsedCar.save();
+        await foundUsedCar.save();
 
-      const message = `Car Declined For Sale`;
+        const message = "Car Status Changed to Pending";
 
-      if (admin.length > 0) {
-        for (const adminUser of admin) {
-          await sendMessage(
-            adminUser.email,
-            `${message}`,
-            `A ${foundUsedCar?.carColor} Color ${foundUsedCar?.carName} of Brand ${foundUsedCar?.carBrand} was declined by admin ${foundUser?.username} due to "${reason}"`,
-            "red"
-          );
+        if (admin.length > 0) {
+          for (const adminUser of admin) {
+            await sendMessage(
+              adminUser.email,
+              `${message}`,
+              `A ${foundUsedCar?.carColor} Color ${foundUsedCar?.carName} of Brand ${foundUsedCar?.carBrand} status has been changed to Pending by${foundUser?.username}`,
+              "yellow"
+            );
+          }
+        }
+
+        res.status(200).json({
+          success: message,
+        });
+      }
+      if (carStatus === 1) {
+        foundUsedCar.status = 1;
+
+        await foundUsedCar.save();
+
+        const message = "Car Status Changed to Availiable";
+
+        if (admin.length > 0) {
+          for (const adminUser of admin) {
+            await sendMessage(
+              adminUser.email,
+              `${message}`,
+              `A ${foundUsedCar?.carColor} Color ${foundUsedCar?.carName} of Brand ${foundUsedCar?.carBrand} status has been changed to Availiable by ${foundUser?.username}`,
+              "green"
+            );
+          }
         }
 
         await sendMessage(
           foundUser?.email,
           `${message}`,
-          `Your request for selling of ${foundUsedCar?.carColor} Color ${foundUsedCar?.carName} of Brand ${foundUsedCar?.carBrand} has been Declined due to "${reason}"`,
-          "red"
+          `Your request for selling of ${foundUsedCar?.carColor} Color ${foundUsedCar?.carName} of Brand ${foundUsedCar?.carBrand} has been Approved. You can see your car on our website`,
+          "green"
         );
+
+        res.status(200).json({
+          success: message,
+        });
+      }
+      if (carStatus === -1) {
+        foundUsedCar.status = -1;
+
+        await foundUsedCar.save();
+
+        const message = "Car Status Changed to Sold Out";
+
+        if (admin.length > 0) {
+          for (const adminUser of admin) {
+            await sendMessage(
+              adminUser.email,
+              `${message}`,
+              `A ${foundUsedCar?.carColor} Color ${foundUsedCar?.carName} of Brand ${foundUsedCar?.carBrand} status has been changed to Sold Out by ${foundUser?.username}`,
+              "red"
+            );
+          }
+        }
+
+        await sendMessage(
+          foundUser?.email,
+          `${message}`,
+          `Your  ${foundUsedCar?.carColor} Color ${foundUsedCar?.carName} of Brand ${foundUsedCar?.carBrand} has been Sold Out. Please contact us at 08153192058`,
+          "green"
+        );
+
+        res.status(200).json({
+          success: message,
+        });
       }
 
-      res.status(200).json({
-        success: message,
-      });
+      if (carStatus === -2) {
+        if (!reason) {
+          return res
+            .status(400)
+            .json({ message: "Reason for Decline Required" });
+        }
+        foundUsedCar.status = -2;
+
+        await foundUsedCar.save();
+
+        const message = `Car Declined For Sale`;
+
+        if (admin.length > 0) {
+          for (const adminUser of admin) {
+            await sendMessage(
+              adminUser.email,
+              `${message}`,
+              `A ${foundUsedCar?.carColor} Color ${foundUsedCar?.carName} of Brand ${foundUsedCar?.carBrand} was declined by admin ${foundUser?.username} due to "${reason}"`,
+              "red"
+            );
+          }
+
+          await sendMessage(
+            foundUser?.email,
+            `${message}`,
+            `Your request for selling of ${foundUsedCar?.carColor} Color ${foundUsedCar?.carName} of Brand ${foundUsedCar?.carBrand} has been Declined due to "${reason}"`,
+            "red"
+          );
+        }
+
+        res.status(200).json({
+          success: message,
+        });
+      }
     } catch (err) {
       res.status(500).json({ message: err.message });
+      console.log(err);
     }
   }
 };
@@ -365,9 +407,9 @@ const handleDeleteUsedCar = async (req, res) => {
 
 module.exports = {
   handleUsedCar,
-  handleApproveUsedCar,
-  handleDeclineUsedCar,
+  handleChangeUsedCarStatus,
   handleDeleteUsedCar,
   getAllUsedCars,
   getAllApprovedUsedCars,
+  getUsedCar,
 };

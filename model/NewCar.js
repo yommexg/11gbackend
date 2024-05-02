@@ -13,6 +13,11 @@ const newCarSchema = new Schema({
   },
 
   year: {
+    type: Number,
+    required: true,
+  },
+
+  carColor: {
     type: String,
     required: true,
   },
@@ -55,11 +60,6 @@ const newCarSchema = new Schema({
   },
 
   engineNumber: {
-    type: String,
-    required: true,
-  },
-
-  carColor: {
     type: String,
     required: true,
   },

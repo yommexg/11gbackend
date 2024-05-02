@@ -28,7 +28,7 @@ const upload = multer({
 router.post(
   "/:userId/create",
   verifyRoles(ROLES_LIST.Admin),
-  upload.array("New Car"),
+  upload.array("New-Car"),
   newCarController.handleNewCar
 );
 
@@ -43,5 +43,13 @@ router.delete(
   verifyRoles(ROLES_LIST.Admin),
   newCarController.handleDeleteNewCar
 );
+
+router.get(
+  "/:userId",
+  verifyRoles(ROLES_LIST.Admin),
+  newCarController.getAllNewCars
+);
+
+router.get("/:userId/:newCarId", newCarController.getNewCar);
 
 module.exports = router;

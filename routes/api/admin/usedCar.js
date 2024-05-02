@@ -5,16 +5,10 @@ const usedCarController = require("../../../controllers/usedCarController");
 const verifyRoles = require("../../../middleware/verifyRoles");
 const ROLES_LIST = require("../../../config/roles_list");
 
-router.post(
-  "/:userId/approve/:carId",
+router.patch(
+  "/:userId/change-status/:carId",
   verifyRoles(ROLES_LIST.Admin),
-  usedCarController.handleApproveUsedCar
-);
-
-router.post(
-  "/:userId/decline/:carId",
-  verifyRoles(ROLES_LIST.Admin),
-  usedCarController.handleDeclineUsedCar
+  usedCarController.handleChangeUsedCarStatus
 );
 
 router.delete(
@@ -27,6 +21,11 @@ router.get(
   "/:userId",
   verifyRoles(ROLES_LIST.Admin),
   usedCarController.getAllUsedCars
+);
+router.get(
+  "/:userId/:usedCarId",
+  verifyRoles(ROLES_LIST.Admin),
+  usedCarController.getUsedCar
 );
 
 module.exports = router;

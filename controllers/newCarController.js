@@ -8,8 +8,35 @@ const { sendMessage } = require("../sendEmail");
 const { uploadNewCarImages } = require("../s3service/newCarS3");
 
 const getAllNewCars = async (req, res) => {
+  const { userId } = req?.params;
+
+  if (!userId || !mongoose.Types.ObjectId.isValid(userId)) {
+    return res.status(400).json({ message: "Valid User ID required" });
+  }
+
+  const foundUser = await User.findOne({
+    _id: userId,
+  }).exec();
+
+  if (!foundUser) {
+    return res.status(401).json({ message: "User Not Found" });
+  }
+
   try {
     const cars = await NewCar.find();
+    if (!cars || cars.length === 0) {
+      return res.status(204).json({ message: "No Car found" });
+    }
+    res.json(cars);
+  } catch (error) {
+    console.error("Error fetching New Cars:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+const getAllApprovedNewCars = async (req, res) => {
+  try {
+    const cars = await NewCar.find({ status: 1 });
     if (!cars || cars.length === 0) {
       return res.status(204).json({ message: "No Car found" });
     }
@@ -50,7 +77,7 @@ const handleNewCar = async (req, res) => {
     description,
     engineType,
     engineNumber,
-    carColor,
+    color,
     quantity,
     energyType,
   } = req.body;
@@ -70,7 +97,7 @@ const handleNewCar = async (req, res) => {
     !description ||
     !engineType ||
     !engineNumber ||
-    !carColor ||
+    !color ||
     !gearType ||
     !energyType
   ) {
@@ -105,7 +132,7 @@ const handleNewCar = async (req, res) => {
         description,
         engineNumber,
         engineType,
-        carColor,
+        carColor: color,
         quantity,
         gearType,
         energyType,
@@ -119,7 +146,7 @@ const handleNewCar = async (req, res) => {
           await sendMessage(
             adminUser.email,
             `${message}`,
-            `A ${carColor} Color ${carName} of Brand ${carBrand} was uploaded by admin ${foundUser?.username}`,
+            `A ${color} Color ${carName} of Brand ${carBrand} was uploaded by admin ${foundUser?.username}`,
             "green"
           );
         }
@@ -129,6 +156,7 @@ const handleNewCar = async (req, res) => {
         success: message,
       });
     } catch (err) {
+      console.log(err);
       res.status(500).json({ message: err.message });
     }
   }
@@ -307,6 +335,7 @@ module.exports = {
   handleNewCar,
   handleDeleteNewCar,
   getAllNewCars,
+  getAllApprovedNewCars,
   getNewCar,
   handleChangeNewCarStatus,
 };

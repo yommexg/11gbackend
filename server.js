@@ -67,15 +67,16 @@ app.use("/refresh", require("./routes/refresh"));
 app.use("/logout", require("./routes/logout"));
 app.use("/forget-password", require("./routes/forgotPassword"));
 
-app.use("/new-cars", require("./routes/newCars"));
-app.use("/used-cars", require("./routes/usedCars"));
-app.use("/car-ass", require("./routes/carAss"));
+app.use("/availiable-new-cars", require("./routes/newCars"));
+app.use("/availiable-used-cars", require("./routes/usedCars"));
+app.use("/availiable-car-ass", require("./routes/carAss"));
 // app.use("/payment", require("./routes/payment"));
 
 app.use(verifyJWT);
 app.use("/users", require("./routes/api/admin/getAllUsers"));
-app.use("/new-car", require("./routes/api/admin/newCar"));
-app.use("/used-car", require("./routes/api/admin/usedCar"));
+app.use("/new-cars", require("./routes/api/admin/newCar"));
+app.use("/used-cars", require("./routes/api/admin/usedCar"));
+app.use("/", require("./routes/api/users/usedCar"));
 app.use("/car-ass", require("./routes/api/admin/carAss"));
 app.use("/complete-user-deletion", require("./routes/api/admin/deleteUser"));
 app.use("/update-user-status", require("./routes/api/admin/updateStatus"));
