@@ -76,11 +76,11 @@ app.use(verifyJWT);
 app.use("/users", require("./routes/api/admin/getAllUsers"));
 app.use("/new-cars", require("./routes/api/admin/newCar"));
 app.use("/used-cars", require("./routes/api/admin/usedCar"));
-app.use("/", require("./routes/api/users/usedCar"));
 app.use("/car-ass", require("./routes/api/admin/carAss"));
-app.use("/complete-user-deletion", require("./routes/api/admin/deleteUser"));
 app.use("/update-user-status", require("./routes/api/admin/updateStatus"));
+app.use("/complete-user-deletion", require("./routes/api/admin/deleteUser"));
 
+app.use("/", require("./routes/api/users/usedCar"));
 app.use("/user", require("./routes/api/users/user"));
 app.use("/used-car", require("./routes/api/users/usedCar"));
 app.use("/upload-avatar", require("./routes/api/users/uploadAvatar"));

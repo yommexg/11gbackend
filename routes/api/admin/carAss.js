@@ -28,14 +28,32 @@ const upload = multer({
 router.post(
   "/:userId/create",
   verifyRoles(ROLES_LIST.Admin),
-  upload.array("Car Ass"),
+  upload.array("Car-Ass"),
   carAssController.handleNewCarAss
+);
+
+router.patch(
+  "/:userId/change-status/:itemId",
+  verifyRoles(ROLES_LIST.Admin),
+  carAssController.handleChangeCarAssStatus
 );
 
 router.delete(
   "/:userId/delete/:itemId",
   verifyRoles(ROLES_LIST.Admin),
   carAssController.handleDeleteCarAss
+);
+
+router.get(
+  "/:userId",
+  verifyRoles(ROLES_LIST.Admin),
+  carAssController.getAllCarAss
+);
+
+router.get(
+  "/:userId/:itemId",
+  verifyRoles(ROLES_LIST.Admin),
+  carAssController.getCarAss
 );
 
 module.exports = router;

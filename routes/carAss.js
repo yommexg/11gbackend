@@ -3,6 +3,6 @@ const router = express.Router();
 
 const carAssController = require("../controllers/carAssController");
 
-router.get("/", carAssController.getAllCarAss);
+router.get("/", carAssController.getAllApprovedCarAss);
 
 module.exports = router;
