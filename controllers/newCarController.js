@@ -212,7 +212,7 @@ const handleChangeNewCarStatus = async (req, res) => {
             await sendMessage(
               adminUser.email,
               `${message}`,
-              `A ${foundNewCar?.carColor} Color ${foundNewCar?.carName} of Brand ${foundNewCar?.carBrand} status has been changed to Pending by${foundUser?.username}`,
+              `A ${foundNewCar?.carColor} Color ${foundNewCar?.carName} of Brand ${foundNewCar?.carBrand} status has been changed to pending by${foundUser?.username}`,
               "yellow"
             );
           }

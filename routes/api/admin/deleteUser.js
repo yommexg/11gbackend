@@ -6,7 +6,7 @@ const verifyRoles = require("../../../middleware/verifyRoles");
 const ROLES_LIST = require("../../../config/roles_list");
 
 router.delete(
-  "/:userId",
+  "/delete/:userId",
   verifyRoles(ROLES_LIST.Admin),
   deleteUserController.handleDelete
 );

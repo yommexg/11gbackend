@@ -4,21 +4,46 @@ const mongoose = require("mongoose");
 const bcrypt = require("bcrypt");
 const { uploadAvatarS3 } = require("../s3service/avatarS3");
 
+const { sendMessage } = require("../sendEmail");
+
 const getAllUsers = async (req, res) => {
+  const { userId } = req?.params;
+
+  if (!userId || !mongoose.Types.ObjectId.isValid(userId)) {
+    return res.status(400).json({ message: "Valid User ID required" });
+  }
+
+  const foundUser = await User.findOne({
+    _id: userId,
+  }).exec();
+
+  if (!foundUser) {
+    return res.status(401).json({ message: "User Not Found" });
+  }
+
   try {
     const users = await User.find();
     if (!users || users.length === 0) {
       return res.status(204).json({ message: "No User found" });
     }
 
-    const userDetails = users.map((user) => ({
-      email: user.email,
-      phoneNumber: user.phoneNumber,
-      address: user.address,
-      avatar: user.avatar,
-      status: user.status,
-      username: user.username,
-    }));
+    const userDetails = users.map((user) => {
+      let role = "User"; // Default role
+      if (user.roles.Admin === 5150) {
+        role = "Admin";
+      }
+
+      return {
+        email: user.email,
+        phoneNumber: user.phoneNumber,
+        address: user.address,
+        avatar: user.avatar,
+        status: user.status,
+        username: user.username,
+        role,
+        date: user.createdAt,
+      };
+    });
 
     res.json(userDetails);
   } catch (error) {
@@ -135,6 +160,23 @@ const uploadAvatar = async (req, res) => {
 
 const updateUserStatus = async (req, res) => {
   const { email, status } = req?.body;
+  const { userId } = req?.params;
+
+  const foundAdmin = await User.findOne({
+    _id: userId,
+  }).exec();
+
+  const admin = await User.find({
+    "roles.Admin": { $exists: true, $ne: null },
+  }).exec();
+
+  if (!foundAdmin) {
+    return res.status(401).json({ message: "Access Denied" });
+  }
+
+  if (!userId) {
+    return res.status(400).json({ message: "User Id is required" });
+  }
 
   if (!email) {
     return res.status(400).json({ message: "Email is required" });
@@ -143,7 +185,7 @@ const updateUserStatus = async (req, res) => {
   const foundUser = await User.findOne({ email }).exec();
 
   if (!foundUser) {
-    return res.status(404).json({ message: `Email Not found` });
+    return res.status(404).json({ message: `User Not found` });
   }
 
   try {
@@ -152,24 +194,82 @@ const updateUserStatus = async (req, res) => {
 
       await foundUser.save();
 
+      const message = `The account with email ${foundUser?.email} has been unblocked`;
+
+      if (admin.length > 0) {
+        for (const adminUser of admin) {
+          await sendMessage(
+            adminUser.email,
+            `Account Unblocked`,
+            `${message} by ${foundAdmin.username}`,
+            "yellow"
+          );
+        }
+      }
+
+      await sendMessage(
+        foundUser.email,
+        `Account Unblocked`,
+        `Your Account has being Unblocked. You can now Login to explore 11GAutos.`,
+        "yellow"
+      );
+
       return res.status(200).json({
-        message: `This account with email ${email} has been unblocked`,
+        message: "Account Unblocked",
       });
     }
     if (status === 2) {
       foundUser.status = status;
+
       await foundUser.save();
 
+      if (admin.length > 0) {
+        for (const adminUser of admin) {
+          await sendMessage(
+            adminUser.email,
+            `Account Upgraded`,
+            `The account with email ${foundUser?.email} has been upgraded to a seller by admin ${foundAdmin.username}`,
+            "green"
+          );
+        }
+      }
+
+      await sendMessage(
+        foundUser.email,
+        `Account Upgraded`,
+        `Congratulations!, You have been approved to upload and sell your cars on our website at 11GAutos`,
+        "green"
+      );
+
       return res.status(200).json({
-        message: `Account ${email} has been accepted as a Car Dealer`,
+        message: `Account has been accepted as a Car Seller`,
       });
     }
     if (status === -1) {
       foundUser.status = status;
 
       await foundUser.save();
+
+      if (admin.length > 0) {
+        for (const adminUser of admin) {
+          await sendMessage(
+            adminUser.email,
+            `Account Suspended`,
+            `The account with email ${foundUser?.email} has been Suspended by admin ${foundAdmin.username}`,
+            "red"
+          );
+        }
+      }
+
+      await sendMessage(
+        foundUser.email,
+        `Account Suspended`,
+        `Your Account has beeen Suspended, Please contact us for more info about this action.`,
+        "red"
+      );
+
       return res.status(200).json({
-        message: `This account with email ${email} has been SUSPENDED`,
+        message: `Account has been SUSPENDED`,
       });
     }
 
