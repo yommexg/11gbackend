@@ -85,6 +85,7 @@ app.use("/user", require("./routes/api/users/user"));
 app.use("/used-car", require("./routes/api/users/usedCar"));
 app.use("/upload-avatar", require("./routes/api/users/uploadAvatar"));
 app.use("/delete-user", require("./routes/api/users/deleteUser"));
+app.use("/sell-request", require("./routes/api/users/sellerRequest"));
 
 // Multer middleware
 app.use((error, req, res, next) => {

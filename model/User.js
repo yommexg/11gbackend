@@ -46,6 +46,16 @@ const userSchema = new Schema({
     Admin: Number,
   },
 
+  document: {
+    name: {
+      type: String,
+    },
+
+    file: {
+      type: String,
+    },
+  },
+
   password: {
     type: String,
   },
