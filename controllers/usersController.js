@@ -265,7 +265,7 @@ const updateUserStatus = async (req, res) => {
         for (const adminUser of admin) {
           await sendMessage(
             adminUser.email,
-            `Account Unblocked`,
+            `Request Rejected`,
             `${message} by ${foundAdmin.username}`,
             "yellow"
           );
@@ -274,7 +274,7 @@ const updateUserStatus = async (req, res) => {
 
       await sendMessage(
         foundUser.email,
-        `Account Unblocked`,
+        `Request Rejected`,
         `Your Request to become a seller at 11GAutos has been denied due to ( ${reason} ). Contact us at +2348153192058`,
         "yellow"
       );
