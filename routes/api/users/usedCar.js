@@ -32,4 +32,10 @@ router.post(
   usedCarController.handleUsedCar
 );
 
+router.get(
+  "/seller/:userId",
+  verifyRoles(ROLES_LIST.User),
+  usedCarController.getAllUsedCarsByUserId
+);
+
 module.exports = router;

@@ -72,6 +72,37 @@ const getAllApprovedUsedCars = async (req, res) => {
   }
 };
 
+const getAllUsedCarsByUserId = async (req, res) => {
+  const { userId } = req?.params;
+  console.log(userId);
+
+  if (!userId || !mongoose.Types.ObjectId.isValid(userId)) {
+    return res.status(400).json({ message: "Valid User ID required" });
+  }
+
+  const foundUser = await User.findOne({
+    _id: userId,
+  }).exec();
+
+  if (!foundUser) {
+    return res.status(401).json({ message: "Access Denied" });
+  }
+
+  try {
+    if (foundUser) {
+      const cars = await UsedCar.find({ user: userId });
+      console.log(cars.length);
+      if (!cars || cars.length === 0) {
+        return res.status(204).json({ message: "No Car found" });
+      }
+      res.json(cars);
+    }
+  } catch (error) {
+    console.error("Error fetching Used Cars:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
 const handleUsedCar = async (req, res) => {
   const {
     carName,
@@ -412,4 +443,5 @@ module.exports = {
   getAllUsedCars,
   getAllApprovedUsedCars,
   getUsedCar,
+  getAllUsedCarsByUserId,
 };

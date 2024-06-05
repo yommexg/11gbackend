@@ -43,6 +43,7 @@ const getAllUsers = async (req, res) => {
         username: user.username,
         role,
         date: user.createdAt,
+        document: user.document,
       };
     });
 
