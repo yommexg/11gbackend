@@ -78,7 +78,9 @@ const getUser = async (req, res) => {
 const updateUser = async (req, res) => {
   try {
     const { userId } = req.params;
-    const { user, pwd, phoneNumber, address } = req.body;
+    const { user, phoneNumber, address } = req.body;
+
+    console.log(phoneNumber, user);
     if (!userId || !mongoose.Types.ObjectId.isValid(userId)) {
       return res.status(400).json({ message: "Valid User ID required" });
     }
@@ -93,11 +95,11 @@ const updateUser = async (req, res) => {
       foundUser.username = user;
     }
 
-    if (pwd) {
-      const hashedPwd = await bcrypt.hash(pwd, 10);
+    // if (pwd) {
+    //   const hashedPwd = await bcrypt.hash(pwd, 10);
 
-      foundUser.password = hashedPwd;
-    }
+    //   foundUser.password = hashedPwd;
+    // }
 
     if (address) {
       if (
